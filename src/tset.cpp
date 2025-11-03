@@ -91,8 +91,11 @@ TSet TSet::operator+(const TSet &s) // объединение
 
 TSet TSet::operator+(const int Elem) // объединение с элементом
 {
-    TSet res(*this);
-    res.InsElem(Elem);
+    if (Elem < 0 || Elem >= MaxPower)
+        throw "Element out of range";
+
+    TSet res(*this);       // Создаем копию текущего множества
+    res.InsElem(Elem);     // Добавляем элемент
     return res;
 }
 
@@ -105,12 +108,34 @@ TSet TSet::operator-(const int Elem) // разность с элементом
 
 TSet TSet::operator*(const TSet &s) // пересечение
 {
-    return TSet(BitField & s.BitField);
+    // Определяем новую мощность как максимум из двух
+    int newMaxPower = (MaxPower > s.MaxPower) ? MaxPower : s.MaxPower;
+    TSet result(newMaxPower);
+
+    // Проходим по элементам меньшего множества для оптимизации
+    int minPower = (MaxPower < s.MaxPower) ? MaxPower : s.MaxPower;
+    for (int i = 0; i < minPower; i++)
+    {
+        // Элемент входит в пересечение, если есть в обоих множествах
+        if (IsMember(i) && s.IsMember(i))
+            result.InsElem(i);
+    }
+
+    return result;
 }
 
 TSet TSet::operator~(void) // дополнение
 {
-    return TSet(~BitField);
+    TSet result(MaxPower);  // Создаем множество той же мощности
+
+    // Добавляем все элементы, которых нет в исходном множестве
+    for (int i = 0; i < MaxPower; i++)
+    {
+        if (!IsMember(i))   // Если элемента нет в исходном множестве
+            result.InsElem(i);  // Добавляем его в результат
+    }
+
+    return result;
 }
 
 // перегрузка ввода/вывода
